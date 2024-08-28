@@ -13,6 +13,8 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.annotation.RequiresApi
+import java.net.DatagramPacket
+import java.net.DatagramSocket
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -22,57 +24,32 @@ import androidx.annotation.RequiresApi
 @RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
     @Test
-    fun useAppContext() {
-        class ProxyServer(private val port: Int) {
-            private val serverSocket: ServerSocket
-            private val executorService: ExecutorService
+    fun main() {
+    val port = 554
+    val bufferSize = 1024
 
-            init {
-                serverSocket = ServerSocket()
-                executorService = Executors.newCachedThreadPool()
-            }
+    try {
+        // 创建一个DatagramSocket实例，监听指定的端口
+        val socket = DatagramSocket(port)
 
-            fun start() {
-                try {
-                    serverSocket.bind(InetSocketAddress(port))
-                    println("Proxy server started on port $port")
+        println("Listening on port $port...")
 
-                    while (true) {
-                        val clientSocket = serverSocket.accept()
-                        executorService.execute { handleClient(clientSocket) }
-                    }
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-            }
+        while (true) {
+            // 创建一个缓冲区来接收数据包
+            val buffer = ByteArray(bufferSize)
+            val packet = DatagramPacket(buffer, buffer.size)
 
-            private fun handleClient(clientSocket: Socket) {
-                try {
-                    val targetUrl = URL("http://example.com") // 替换为您要拦截的目标网站
-                    val targetHost = targetUrl.host
-                    val targetPort = targetUrl.port
+            // 接收数据包
+            socket.receive(packet)
 
-                    val targetSocket = Socket(targetHost, targetPort)
-                    val inputStream = clientSocket.getInputStream()
-                    val outputStream = clientSocket.getOutputStream()
-                    val targetInputStream = targetSocket.getInputStream()
-                    val targetOutputStream = targetSocket.getOutputStream()
-
-                    // 将客户端的请求转发到目标服务器
-                    inputStream.copyTo(targetOutputStream)
-                    targetOutputStream.flush()
-
-                    // 将目标服务器的响应转发回客户端
-                    targetInputStream.copyTo(outputStream)
-                    outputStream.flush()
-
-                    clientSocket.close()
-                    targetSocket.close()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-            }
-        }      // Context of the app under test.
+            // 打印接收到的数据包的信息
+            println("Received packet from ${packet.address}:${packet.port}")
+            println("Data: ${String(packet.data, 0, packet.length)}")
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}     // Context of the app under test.
 
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals("io.github.xiayizhang.flowcontrol", appContext.packageName)
