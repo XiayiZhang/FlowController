@@ -32,7 +32,7 @@ class ExampleInstrumentedTest {
         // 创建一个DatagramSocket实例，监听指定的端口
         val socket = DatagramSocket(port)
 
-        println("Listening on port $port...")
+        println("正在监听$port端口...")
 
         while (true) {
             // 创建一个缓冲区来接收数据包
@@ -43,8 +43,8 @@ class ExampleInstrumentedTest {
             socket.receive(packet)
 
             // 打印接收到的数据包的信息
-            println("Received packet from ${packet.address}:${packet.port}")
-            println("Data: ${String(packet.data, 0, packet.length)}")
+            println("收到${packet.address}:${packet.port}的数据包")
+            println("内容${String(packet.data, 0, packet.length)}")
         }
     } catch (e: Exception) {
         e.printStackTrace()
